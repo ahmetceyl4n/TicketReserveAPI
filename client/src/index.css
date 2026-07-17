@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Nexus Reserve paleti — koyu zemin + cyan neon vurgu.
+     Koltuk durum renkleri (amber=işlemde, rose=satıldı) bu token'lardan türetilir;
+     bir durumun rengini değiştirmek için tek yer burası. */
+  --color-void: #050508;
+  --color-panel: #0c0e14;
+  --color-panel-2: #12151f;
+  --color-line: #1e2432;
+  --color-muted: #8b93a7;
+  --color-neon: #22d3ee;
+  --color-neon-soft: #0e7490;
+  --color-lock: #fbbf24;
+  --color-sold: #9f1239;
+}
+
+body {
+  background-color: var(--color-void);
+  color: #e5e9f0;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  /* Ekran görüntülerindeki köşelerden sızan renkli ışık efekti */
+  background-image:
+    radial-gradient(ellipse 60% 40% at 85% 100%, rgb(159 18 57 / 0.12), transparent),
+    radial-gradient(ellipse 50% 35% at 10% 0%, rgb(34 211 238 / 0.07), transparent);
+  background-attachment: fixed;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(1.5rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-toast-in { animation: toast-in 0.25s ease-out; }
+.animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1); }

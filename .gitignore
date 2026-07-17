@@ -1,0 +1,32 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Claude Code (kişisel makine ayarı, paylaşılmaz)
+.claude/settings.local.json
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Secrets — bunlar repoya asla girmemeli
+.env
+.env.local
+.env.*.local
+*.pfx
+appsettings.*.local.json
+
+# OS
+Thumbs.db
+.DS_Store
