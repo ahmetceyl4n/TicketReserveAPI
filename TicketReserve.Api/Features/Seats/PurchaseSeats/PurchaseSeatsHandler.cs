@@ -1,9 +1,14 @@
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using TicketReserve.Api.Common;
 using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 using TicketReserve.Api.Infrastructure.Auth;
+using TicketReserve.Api.Infrastructure.Correlation;
 using TicketReserve.Api.Infrastructure.Locking;
+using TicketReserve.Api.Infrastructure.Messaging;
 
 namespace TicketReserve.Api.Features.Seats.PurchaseSeats
 {
@@ -12,14 +17,14 @@ namespace TicketReserve.Api.Features.Seats.PurchaseSeats
         private readonly ApplicationDbContext _dbcontext;
         private readonly ISeatLockService _seatLockService;
         private readonly ICurrentUserService _currentUser;
-        private readonly IPublisher _publisher;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public PurchaseSeatsHandler(ApplicationDbContext dbcontext, ISeatLockService seatLockService, ICurrentUserService currentUser, IPublisher publisher)
+        public PurchaseSeatsHandler(ApplicationDbContext dbcontext, ISeatLockService seatLockService, ICurrentUserService currentUser, IPublishEndpoint publishEndpoint)
         {
             _dbcontext = dbcontext;
             _seatLockService = seatLockService;
             _currentUser = currentUser;
-            _publisher = publisher;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<Result> Handle(PurchaseSeatsCommand request, CancellationToken cancellationToken)
@@ -60,6 +65,12 @@ namespace TicketReserve.Api.Features.Seats.PurchaseSeats
                 _dbcontext.Reservations.Add(reservation);
             }
 
+            var total = seats.Sum(s => s.Price);
+            var integrationEvent = new SeatsPurchasedIntegrationEvent(userId,request.EventId,request.SeatIds,total);
+            await _publishEndpoint.Publish(integrationEvent, cancellationToken);
+
+          
+
             try
             {
                 await _dbcontext.SaveChangesAsync(cancellationToken);
@@ -76,9 +87,6 @@ namespace TicketReserve.Api.Features.Seats.PurchaseSeats
             }
 
             await _seatLockService.ReleaseAsync(request.SeatIds, userId);
-
-            var total = seats.Sum(s => s.Price);
-            await _publisher.Publish(new SeatsPurchasedNotification(userId,request.EventId,request.SeatIds,total),cancellationToken);
 
             return Result.Success();
         }

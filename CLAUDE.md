@@ -88,7 +88,7 @@ Bir adım (Adım 0, Adım 1, ...) tamamlandığında **ben istemesem bile** şu 
 
 ## Genel Yasaklar
 
-- "Best practice" gerekçesi yasak; her karar somut trade-off ile açıklanmalı.
+- "Best practice" gerekçesi yasak; her karar somut trade-off ile açıklanmalı. AMA sektörün/endüstrinin o konuda "doğru kabul ettiği" yaklaşımı **bilgi olarak** ayrıca söyle — ismini ver, ne olduğunu anlat, hangi araç/standart bunu böyle yapıyor (MassTransit, CloudEvents vb.). Yasak olan tek şey best practice'i *karar gerekçesi* yerine koymak; best practice'i *öğretmek* zorunludur. Kural: "sektör böyle yapıyor + neden (trade-off) + bizim seçimimiz neden farklı/aynı".
 - "Değişenler" listesinde "eklendi/değişti" gibi düz ifade yasak; her satır ne yaptığını ve neden yaptığını anlatmalı.
 
 ---

@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
-namespace TicketReserve.Api.Data;
+namespace TicketReserve.Api.Data.Entities;
 
 public class ApplicationUser : IdentityUser
 {

@@ -1,7 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TicketReserve.Api.Common;
 using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 
 namespace TicketReserve.Api.Features.Events.GetEventById;
 

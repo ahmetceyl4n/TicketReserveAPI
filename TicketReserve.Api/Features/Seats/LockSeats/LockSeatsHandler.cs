@@ -1,8 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TicketReserve.Api.Common;
 using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 using TicketReserve.Api.Infrastructure.Auth;
 using TicketReserve.Api.Infrastructure.Locking;
 

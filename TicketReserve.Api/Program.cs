@@ -1,11 +1,15 @@
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
+using Serilog.Enrichers.Span;
 using StackExchange.Redis;
 using System.Globalization;
 using System.Security.Claims;
@@ -13,12 +17,15 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 using TicketReserve.Api.Infrastructure.Auth;
 using TicketReserve.Api.Infrastructure.Behaviors;
 using TicketReserve.Api.Infrastructure.Correlation;
 using TicketReserve.Api.Infrastructure.Endpoints;
 using TicketReserve.Api.Infrastructure.ExceptionHandling;
 using TicketReserve.Api.Infrastructure.Locking;
+using TicketReserve.Api.Infrastructure.Notifications;
+using TicketReserve.Api.Infrastructure.Messaging.Consumers;
 using TicketReserve.Api.Infrastructure.Seed;
 
 Log.Logger = new LoggerConfiguration()
@@ -35,6 +42,8 @@ try
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
+        // Aktif Activity'nin TraceId/SpanId'sini her log olayına ekler → log ile Jaeger trace'ini bağlar.
+        .Enrich.WithSpan()
         .WriteTo.Console(
             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
@@ -47,7 +56,7 @@ try
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     builder.Services.AddScoped<ICorrelationIdProvider, CorrelationIdProvider>();
-    builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+    builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();    
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
@@ -81,6 +90,44 @@ try
         ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
     builder.Services.AddSingleton<ISeatLockService, RedisSeatLockService>();
 
+    // Bildirim servisleri (consumer'lar bunlara devrediyor). Interface → implementasyon.
+    builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+    builder.Services.AddScoped<ISmsNotificationService, SmsNotificationService>();
+
+    // MassTransit bus. ConfigureEndpoints her consumer için kuyruk+exchange+binding'i otomatik kurar.
+    builder.Services.AddMassTransit(x =>
+    {
+        x.SetKebabCaseEndpointNameFormatter();
+
+        x.AddConsumer<EmailConsumer>();
+        x.AddConsumer<SmsConsumer>();
+
+        // Transactional Outbox + Inbox: producer Publish'i iş verisiyle aynı SaveChanges'a yazılır
+        // (atomik), teslim servisi sonra broker'a gönderir; Inbox consumer tarafı dedup yapar.
+        x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+        {
+            o.UsePostgres();
+            o.UseBusOutbox();
+        });
+
+        x.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host(new Uri(builder.Configuration.GetConnectionString("RabbitMQ")!));
+            cfg.ConfigureEndpoints(context);
+        });
+    });
+
+    // OpenTelemetry distributed tracing: instrumentation'lar otomatik span üretir, MassTransit
+    // traceparent'ı mesaja gömüp async sınırı bağlar, span'ler OTLP ile Jaeger'a (4317) akar.
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(resource => resource.AddService("TicketReserve.Api"))
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSource("MassTransit")
+            .AddSource("Npgsql")
+            .AddOtlpExporter(o => o.Endpoint = new Uri("http://localhost:4317")));
+
     builder.Services
         // AddIdentity yerine AddIdentityCore: AddIdentity, cookie tabanlı bir authentication
         // şeması da kaydedip onu varsayılan (DefaultChallengeScheme) yapıyor — bu da aşağıdaki
@@ -105,6 +152,7 @@ try
         ?? throw new InvalidOperationException("'Jwt' konfigürasyon bölümü eksik.");
 
     builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+    builder.Services.Configure<SeatLockSettings>(builder.Configuration.GetSection("SeatLock"));
 
     builder.Services
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

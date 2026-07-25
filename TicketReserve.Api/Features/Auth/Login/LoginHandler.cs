@@ -1,7 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using TicketReserve.Api.Common;
 using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 using TicketReserve.Api.Infrastructure.Auth;
 
 namespace TicketReserve.Api.Features.Auth.Login;

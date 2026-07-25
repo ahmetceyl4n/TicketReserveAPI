@@ -1,6 +1,7 @@
 using MediatR;
 using TicketReserve.Api.Common;
 using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 
 namespace TicketReserve.Api.Features.Events.CreateEvent;
 

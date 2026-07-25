@@ -1,4 +1,5 @@
-using TicketReserve.Api.Data;
+﻿using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 
 namespace TicketReserve.Api.Infrastructure.Auth;
 

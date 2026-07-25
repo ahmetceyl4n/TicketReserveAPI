@@ -71,7 +71,7 @@ public sealed class RedisSeatLockService : ISeatLockService
             allReleased &= result == 1;
         }
 
-        return allReleased;
+        return allReleased; 
     }
 
     public async Task<bool> AreAllLockedByAsync(IReadOnlyCollection<Guid> seatIds, string userId)

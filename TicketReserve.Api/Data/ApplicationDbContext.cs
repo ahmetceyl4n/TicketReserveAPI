@@ -1,5 +1,9 @@
+using MassTransit;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using TicketReserve.Api.Data.Entities;
+// MassTransit de bir 'Event' tipi tanımlıyor; bizim Event entity'sini kastettiğimizi netleştiriyoruz.
+using Event = TicketReserve.Api.Data.Entities.Event;
 
 namespace TicketReserve.Api.Data;
 
@@ -48,5 +52,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Seat>()
             .Property(s => s.Version)
             .IsRowVersion();
+
+        // MassTransit'in kendi Outbox+Inbox tabloları (bizim elle yazdığımızın framework karşılığı).
+        // Migration'a InboxState + OutboxState + OutboxMessage tabloları eklenecek.
+        builder.AddInboxStateEntity();
+        builder.AddOutboxStateEntity();
+        builder.AddOutboxMessageEntity();
     }
 }

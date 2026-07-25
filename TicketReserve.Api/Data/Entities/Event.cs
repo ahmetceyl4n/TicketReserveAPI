@@ -1,4 +1,4 @@
-namespace TicketReserve.Api.Data;
+﻿namespace TicketReserve.Api.Data.Entities;
 
 public class Event : ISoftDeletable
 {

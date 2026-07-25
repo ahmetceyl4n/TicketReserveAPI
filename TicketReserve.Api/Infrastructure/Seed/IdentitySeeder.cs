@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using TicketReserve.Api.Data;
+using TicketReserve.Api.Data.Entities;
 
 namespace TicketReserve.Api.Infrastructure.Seed;
 
