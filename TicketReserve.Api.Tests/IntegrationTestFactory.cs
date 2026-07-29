@@ -29,6 +29,14 @@ namespace TicketReserve.Api.Tests
 
         private const string TestJwtKey = "integration-test-signing-key-at-least-32-bytes-long";
 
+        public IntegrationTestFactory()
+        {
+            // Jwt:Key, Program.cs'te builder.Build()'den ÖNCE okunuyor; WebApplicationFactory'nin
+            // ConfigureAppConfiguration override'ı ancak build'den SONRA devreye girdiği için o erken
+            // okumaya yetişmiyor. Env var ise CreateBuilder tarafından erken eklenir → okuma onu görür.
+            Environment.SetEnvironmentVariable("Jwt__Key", TestJwtKey);
+        }
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureAppConfiguration((_, config) =>
