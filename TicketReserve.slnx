@@ -2,5 +2,6 @@
   <Folder Name="/Çözüm Öğeleri/">
     <File Path="docker-compose.yml" />
   </Folder>
+  <Project Path="TicketReserve.Api.Tests/TicketReserve.Api.Tests.csproj" />
   <Project Path="TicketReserve.Api/TicketReserve.Api.csproj" />
 </Solution>
