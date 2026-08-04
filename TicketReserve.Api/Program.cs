@@ -20,12 +20,13 @@ using TicketReserve.Api.Data;
 using TicketReserve.Api.Data.Entities;
 using TicketReserve.Api.Infrastructure.Auth;
 using TicketReserve.Api.Infrastructure.Behaviors;
+using TicketReserve.Api.Infrastructure.Caching;
 using TicketReserve.Api.Infrastructure.Correlation;
 using TicketReserve.Api.Infrastructure.Endpoints;
 using TicketReserve.Api.Infrastructure.ExceptionHandling;
 using TicketReserve.Api.Infrastructure.Locking;
-using TicketReserve.Api.Infrastructure.Notifications;
 using TicketReserve.Api.Infrastructure.Messaging.Consumers;
+using TicketReserve.Api.Infrastructure.Notifications;
 using TicketReserve.Api.Infrastructure.Seed;
 
 Log.Logger = new LoggerConfiguration()
@@ -65,6 +66,7 @@ try
     // böylece loglama, validasyon hatalarını da (handler'a hiç ulaşmasalar bile) görür.
     builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
     builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+    builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
 
     builder.Services.AddProblemDetails(options =>
     {
@@ -89,6 +91,14 @@ try
     builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
         ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
     builder.Services.AddSingleton<ISeatLockService, RedisSeatLockService>();
+
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration.GetConnectionString("Redis");
+        options.InstanceName = "TicketReserve:";
+    });
+
+    builder.Services.AddScoped<ICacheService, RedisCacheService>();
 
     // Bildirim servisleri (consumer'lar bunlara devrediyor). Interface → implementasyon.
     builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
@@ -118,7 +128,7 @@ try
     });
 
     // OpenTelemetry distributed tracing: instrumentation'lar otomatik span üretir, MassTransit
-    // traceparent'ı mesaja gömüp async sınırı bağlar, span'ler OTLP ile Jaeger'a (4317) akar.
+    // traceparent'ı mesaja gömüp async sınırı bağlar, span'ler OTLP ile Tempo'ya (4317) akar.
     builder.Services.AddOpenTelemetry()
         .ConfigureResource(resource => resource.AddService("TicketReserve.Api"))
         .WithTracing(tracing => tracing
@@ -126,6 +136,7 @@ try
             .AddHttpClientInstrumentation()
             .AddSource("MassTransit")
             .AddSource("Npgsql")
+            .AddSource("TicketReserve.Caching")
             .AddOtlpExporter(o => o.Endpoint = new Uri("http://localhost:4317")));
 
     builder.Services

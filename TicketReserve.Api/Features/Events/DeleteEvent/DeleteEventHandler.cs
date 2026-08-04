@@ -3,16 +3,19 @@ using Microsoft.EntityFrameworkCore;
 using TicketReserve.Api.Common;
 using TicketReserve.Api.Data;
 using TicketReserve.Api.Data.Entities;
+using TicketReserve.Api.Infrastructure.Caching;
 
 namespace TicketReserve.Api.Features.Events.DeleteEvent;
 
 public sealed class DeleteEventHandler : IRequestHandler<DeleteEventCommand, Result>
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly ICacheService _cache;
 
-    public DeleteEventHandler(ApplicationDbContext dbContext)
+    public DeleteEventHandler(ApplicationDbContext dbContext, ICacheService cache)
     {
         _dbContext = dbContext;
+        _cache = cache;
     }
 
     public async Task<Result> Handle(DeleteEventCommand request, CancellationToken cancellationToken)
@@ -31,6 +34,9 @@ public sealed class DeleteEventHandler : IRequestHandler<DeleteEventCommand, Res
         // sayesinde otomatik Deleted işaretlenen Seats için de).
         _dbContext.Events.Remove(eventEntity);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Silme sonrası eski kopyayı at — yoksa GET, TTL boyunca silinmiş etkinliği cache'ten döndürür.
+        await _cache.RemoveAsync(CacheKeys.Event(request.Id), cancellationToken);
 
         return Result.Success();
     }
