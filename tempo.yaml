@@ -1,0 +1,21 @@
+server:
+  http_listen_port: 3200
+
+# Uygulamadan OTLP ile gelen span'leri buradan alıyoruz (Jaeger'daki COLLECTOR_OTLP_ENABLED'in karşılığı).
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+# Local disk depolama — dev için yeterli (prod'da S3/GCS kullanılır).
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/blocks
+    wal:
+      path: /var/tempo/wal

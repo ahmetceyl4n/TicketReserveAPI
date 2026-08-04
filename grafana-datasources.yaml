@@ -1,0 +1,9 @@
+apiVersion: 1
+
+# Grafana açılınca Tempo'yu otomatik veri kaynağı olarak bağlar (elle "add data source" yapmamak için).
+datasources:
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    isDefault: true

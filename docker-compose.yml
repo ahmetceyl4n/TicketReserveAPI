@@ -24,16 +24,30 @@ services:
       - "5672:5672"
       - "15672:15672"
 
-  # Distributed tracing backend. Uygulama span'leri OTLP ile buraya gönderir; UI'da (16686) şelale görülür.
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: ticketreserve-jaeger
-    environment:
-      COLLECTOR_OTLP_ENABLED: "true"   # Jaeger'ın OTLP alıcısını aç (4317 gRPC / 4318 HTTP)
+  # Trace backend (depo): uygulama span'leri OTLP ile buraya akar, saklanır. Kendi UI'ı yok, API sunar (3200).
+  tempo:
+    image: grafana/tempo:latest
+    container_name: ticketreserve-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
     ports:
-      - "16686:16686"   # Jaeger UI (tarayıcı)
-      - "4317:4317"     # OTLP gRPC (uygulama buraya trace gönderir)
+      - "4317:4317"     # OTLP gRPC (uygulama buraya trace gönderir — eskiden Jaeger'daydı)
       - "4318:4318"     # OTLP HTTP
+      - "3200:3200"     # Tempo API (Grafana buraya sorar)
+
+  # Görselleştirme UI. Tempo'yu veri kaynağı olarak önceden bağlı gelir (grafana-datasources.yaml).
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ticketreserve-grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"        # login ekranı olmasın (local kolaylık)
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports:
+      - "3000:3000"     # Grafana UI (tarayıcı)
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
 
 volumes:
   postgres_data:
