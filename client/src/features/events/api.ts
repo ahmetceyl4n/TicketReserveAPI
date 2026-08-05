@@ -1,4 +1,4 @@
-import type { CreateEventCommand, EventSummary } from '@/types'
+import type { CreateEventCommand, CreateSeatsCommand, EventSummary } from '@/types'
 import { USE_MOCKS, apiClient } from '@/lib/apiClient'
 import { mockDb } from '@/lib/mock/db'
 import { delay, mockError } from '@/lib/mock/helpers'
@@ -7,6 +7,7 @@ interface EventsApi {
   getEvents(): Promise<EventSummary[]>
   getEvent(id: string): Promise<EventSummary>
   createEvent(command: CreateEventCommand): Promise<EventSummary>
+  createSeats(eventId: string, command: CreateSeatsCommand): Promise<void>
   deleteEvent(id: string): Promise<void>
 }
 
@@ -22,6 +23,9 @@ const httpEventsApi: EventsApi = {
   async createEvent(command) {
     const { data } = await apiClient.post<EventSummary>('/events', command)
     return data
+  },
+  async createSeats(eventId, command) {
+    await apiClient.post(`/events/${eventId}/seats`, command)
   },
   async deleteEvent(id) {
     await apiClient.delete(`/events/${id}`)
@@ -52,6 +56,11 @@ const mockEventsApi: EventsApi = {
     }
     mockDb.addEvent(event)
     return event
+  },
+
+  async createSeats() {
+    // Mock modda koltuklar getSeats çağrısında otomatik üretiliyor → burada iş yok.
+    await delay()
   },
 
   async deleteEvent(id) {

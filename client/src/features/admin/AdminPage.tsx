@@ -131,10 +131,21 @@ function CreateEventModal({
   onCreated: (event: EventSummary) => void
 }) {
   const [saving, setSaving] = useState(false)
+  const [startRow, setStartRow] = useState('A')
+  const [endRow, setEndRow] = useState('E')
+  const [seatsPerRow, setSeatsPerRow] = useState(10)
+  const [price, setPrice] = useState(100)
   const pushToast = useToastStore((state) => state.push)
+
+  const rowCount = Math.max(0, endRow.charCodeAt(0) - startRow.charCodeAt(0) + 1)
+  const totalSeats = rowCount * seatsPerRow
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (endRow < startRow) {
+      pushToast('error', 'Bitiş sırası başlangıç sırasından önce olamaz.')
+      return
+    }
     const form = new FormData(e.currentTarget)
     setSaving(true)
     try {
@@ -144,6 +155,8 @@ function CreateEventModal({
         venue: String(form.get('venue')),
         date: new Date(String(form.get('date'))).toISOString(),
       })
+      // Etkinlik oluştuktan sonra koltukları da yarat (backend'de ayrı endpoint).
+      await eventsApi.createSeats(event.id, { startRow, endRow, seatsPerRow, price })
       onCreated(event)
     } catch (error) {
       pushToast('error', isApiError(error) ? error.message : 'Etkinlik oluşturulamadı.')
@@ -151,6 +164,8 @@ function CreateEventModal({
       setSaving(false)
     }
   }
+
+  const rows = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))
 
   const inputClass =
     'w-full rounded-lg border border-line bg-panel-2 px-4 py-3 text-sm placeholder:text-muted focus:border-neon focus:outline-none'
@@ -167,7 +182,71 @@ function CreateEventModal({
           className={inputClass}
         />
         <input name="venue" required placeholder="Mekan" className={inputClass} />
-        <input name="date" required type="datetime-local" className={inputClass} />
+        <input
+          name="date"
+          required
+          type="datetime-local"
+          onClick={(e) => e.currentTarget.showPicker?.()}
+          className={`${inputClass} cursor-pointer [color-scheme:dark]`}
+        />
+
+        <div className="space-y-3 rounded-lg border border-line bg-panel-2 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold">Koltuk Düzeni</span>
+            <span className="font-mono text-xs text-neon">{totalSeats} koltuk</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-xs text-muted">
+              Başlangıç sırası
+              <select
+                value={startRow}
+                onChange={(e) => setStartRow(e.target.value)}
+                className={`${inputClass} mt-1 cursor-pointer [color-scheme:dark]`}
+              >
+                {rows.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs text-muted">
+              Bitiş sırası
+              <select
+                value={endRow}
+                onChange={(e) => setEndRow(e.target.value)}
+                className={`${inputClass} mt-1 cursor-pointer [color-scheme:dark]`}
+              >
+                {rows.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs text-muted">
+              Sıra başına koltuk
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={seatsPerRow}
+                onChange={(e) => setSeatsPerRow(Number(e.target.value))}
+                className={`${inputClass} mt-1`}
+              />
+            </label>
+            <label className="text-xs text-muted">
+              Fiyat (₺)
+              <input
+                type="number"
+                min={1}
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                className={`${inputClass} mt-1`}
+              />
+            </label>
+          </div>
+          <p className="text-xs text-muted">
+            {startRow}–{endRow} arası {rowCount} sıra × {seatsPerRow} koltuk
+          </p>
+        </div>
+
         <Button type="submit" className="w-full" disabled={saving}>
           {saving ? 'Kaydediliyor...' : 'Oluştur'}
         </Button>

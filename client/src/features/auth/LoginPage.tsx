@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { KeyRound } from 'lucide-react'
 import { isApiError } from '@/types'
 import { Button } from '@/components/Button'
@@ -72,10 +72,11 @@ export function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-6 rounded-lg border border-line bg-panel-2 px-4 py-3 font-mono text-[11px] leading-relaxed text-muted">
-          MOCK MOD — <span className="text-neon">admin@nexus.com</span> ile girersen Admin rolü
-          alırsın; başka herhangi bir e-posta User olur. Şifre "wrong" hatalı giriş senaryosunu
-          tetikler.
+        <p className="mt-6 text-center text-sm text-muted">
+          Hesabın yok mu?{' '}
+          <Link to="/register" className="text-neon hover:underline">
+            Kayıt ol
+          </Link>
         </p>
       </div>
     </div>

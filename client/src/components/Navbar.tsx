@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Activity, CreditCard, LogOut, Settings, Terminal, Ticket } from 'lucide-react'
+import { Activity, LogOut, Terminal } from 'lucide-react'
 import { selectIsAdmin, useAuthStore } from '@/store/authStore'
 import { SlideOver } from './Modal'
 import { Button } from './Button'
@@ -83,31 +83,29 @@ export function Navbar() {
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-neon-soft text-3xl font-bold text-neon shadow-[0_0_25px_rgb(34_211_238/0.3)]">
             {user?.email[0]?.toUpperCase()}
           </div>
-          <div className="mt-4 font-semibold">{user?.email}</div>
-          <div className="mt-1 font-mono text-xs text-neon">
-            {user?.roles.includes('Admin') ? 'Premium Üye' : 'Standart Üye'}
+          <div className="mt-4 font-semibold">{user?.fullName || user?.email}</div>
+          <div className="mt-1 text-sm text-muted">{user?.email}</div>
+          <div className="mt-3 inline-block rounded-full border border-neon-soft bg-neon/10 px-3 py-1 font-mono text-xs text-neon">
+            {isAdmin ? 'Yönetici' : 'Üye'}
           </div>
         </div>
 
-        <div className="mt-6 space-y-2">
-          {[
-            { icon: Ticket, title: 'Biletlerim', subtitle: 'Geçmiş ve aktif rezervasyonlar' },
-            { icon: CreditCard, title: 'Ödeme Yöntemleri', subtitle: 'Kayıtlı kartlar ve cüzdan' },
-            { icon: Settings, title: 'Ayarlar', subtitle: 'Hesap ve bildirim tercihleri' },
-          ].map(({ icon: Icon, title, subtitle }) => (
-            <button
-              key={title}
-              className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left hover:bg-panel-2 transition-colors cursor-pointer"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-panel-2 border border-line">
-                <Icon size={18} />
-              </span>
-              <span>
-                <span className="block font-semibold">{title}</span>
-                <span className="block text-xs text-muted">{subtitle}</span>
-              </span>
-            </button>
-          ))}
+        <div className="mt-6 space-y-3 rounded-2xl border border-line bg-panel-2 p-5">
+          <div className="font-mono text-xs tracking-widest text-muted">HESAP BİLGİLERİ</div>
+          <div className="flex justify-between gap-4 border-t border-line pt-3 text-sm">
+            <span className="text-muted">E-posta</span>
+            <span className="truncate font-medium">{user?.email}</span>
+          </div>
+          {user?.fullName && user.fullName !== user.email && (
+            <div className="flex justify-between gap-4 text-sm">
+              <span className="text-muted">Ad Soyad</span>
+              <span className="truncate font-medium">{user.fullName}</span>
+            </div>
+          )}
+          <div className="flex justify-between gap-4 text-sm">
+            <span className="text-muted">Rol</span>
+            <span className="font-medium">{user?.roles.join(', ') || 'Üye'}</span>
+          </div>
         </div>
       </SlideOver>
     </header>

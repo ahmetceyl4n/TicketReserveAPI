@@ -4,6 +4,7 @@ import { Navbar } from '@/components/Navbar'
 import { ToastContainer } from '@/components/ToastContainer'
 import { selectIsAdmin, useAuthStore } from '@/store/authStore'
 import { LoginPage } from '@/features/auth/LoginPage'
+import { RegisterPage } from '@/features/auth/RegisterPage'
 import { HomePage } from '@/features/events/HomePage'
 import { SeatSelectionPage } from '@/features/booking/SeatSelectionPage'
 import { AdminPage } from '@/features/admin/AdminPage'
@@ -25,6 +26,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/events/:eventId/seats" element={<SeatSelectionPage />} />
         <Route
           path="/admin"

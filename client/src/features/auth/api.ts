@@ -14,7 +14,13 @@ const httpAuthApi: AuthApi = {
     return data
   },
   async register(command) {
-    const { data } = await apiClient.post<AuthResponse>('/auth/register', command)
+    // Backend register token DÖNMÜYOR (sadece {id,email,fullName}). Kaydın ardından
+    // aynı bilgilerle login yapıp token'ı oradan alıyoruz (auto-login deseni).
+    await apiClient.post('/auth/register', command)
+    const { data } = await apiClient.post<AuthResponse>('/auth/login', {
+      email: command.email,
+      password: command.password,
+    })
     return data
   },
 }

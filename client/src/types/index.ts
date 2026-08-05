@@ -31,6 +31,14 @@ export interface CreateEventCommand {
   date: string
 }
 
+export interface CreateSeatsCommand {
+  /** Tek harf, A-Z */
+  startRow: string
+  endRow: string
+  seatsPerRow: number
+  price: number
+}
+
 export interface User {
   id: string
   email: string
