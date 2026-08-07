@@ -8,7 +8,7 @@ namespace TicketReserve.Api.Features.Events.UpdateEvent
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapDelete("/events/{id:guid}", async (Guid id, UpdateEventRequest request, IMediator mediator) =>
+            app.MapPut("/events/{id:guid}", async (Guid id, UpdateEventRequest request, IMediator mediator) =>
             {
                 var command = new UpdateEventCommand(id, request.Name, request.Description, request.Venue, request.Date);
                 var result = await mediator.Send(command);

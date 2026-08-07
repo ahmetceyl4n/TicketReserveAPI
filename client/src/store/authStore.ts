@@ -26,15 +26,15 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'nexus-auth',
       partialize: (state) => ({ accessToken: state.accessToken }),
-      onRehydrateStorage: () => (state) => {
-        if (!state?.accessToken) return
-        const user = parseJwt(state.accessToken)
-        // Süresi dolmuş token'ı açılışta temizle, kullanıcıyı login'e düşür
-        if (user) {
-          useAuthStore.setState({ user })
-        } else {
-          useAuthStore.setState({ accessToken: null, user: null })
-        }
+      // Rehydrate'i deterministik yapıyoruz: user'ı hydrate anında token'dan
+      // türetip state'i doğrudan burada kuruyoruz. onRehydrateStorage'ın
+      // sonradan-çalışan callback'i + ayrı setState'i ilk render'da user=null
+      // bırakıp "token localStorage'da ama UI çıkış yapmış" tutarsızlığına yol açıyordu.
+      merge: (persisted, current) => {
+        const token = (persisted as Partial<AuthState> | undefined)?.accessToken ?? null
+        const user = token ? parseJwt(token) : null
+        // parseJwt null → token süresi dolmuş/bozuk → oturumu tamamen düşür
+        return { ...current, accessToken: user ? token : null, user }
       },
     },
   ),

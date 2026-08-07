@@ -45,7 +45,9 @@ export function SlideOver({ open, title, onClose, children, footer }: SlideOverP
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50">
+    // h-screen şart: yalnızca absolute çocuklar olduğunda `fixed inset-0` yüksekliği
+    // collapse ediyor (66px), panelin h-full'ü de ona çözülüp içeriği eziyordu.
+    <div className="fixed inset-0 z-50 h-screen">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       <div className="absolute right-0 top-0 h-full w-full max-w-md flex flex-col border-l border-line bg-panel animate-slide-in-right">
         <div className="flex items-center justify-between border-b border-line px-6 py-5">
