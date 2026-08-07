@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Activity, LogOut, Terminal } from 'lucide-react'
+import { Activity, LogOut, Terminal, Ticket } from 'lucide-react'
 import { selectIsAdmin, useAuthStore } from '@/store/authStore'
 import { SlideOver } from './Modal'
 import { Button } from './Button'
@@ -89,6 +89,17 @@ export function Navbar() {
             {isAdmin ? 'Yönetici' : 'Üye'}
           </div>
         </div>
+
+        <button
+          onClick={() => {
+            setProfileOpen(false)
+            navigate('/reservations')
+          }}
+          className="mt-4 flex w-full items-center gap-3 rounded-xl border border-line bg-panel-2 px-4 py-3 text-sm hover:border-neon-soft transition-colors cursor-pointer"
+        >
+          <Ticket size={16} className="text-neon" />
+          Biletlerim
+        </button>
 
         <div className="mt-6 space-y-3 rounded-2xl border border-line bg-panel-2 p-5">
           <div className="font-mono text-xs tracking-widest text-muted">HESAP BİLGİLERİ</div>

@@ -31,6 +31,21 @@ export interface CreateEventCommand {
   date: string
 }
 
+/** GET /reservations/me — kullanıcının satın aldığı biletlerin düz görünümü */
+export interface ReservationSummary {
+  reservationId: string
+  eventId: string
+  eventName: string
+  venue: string
+  /** ISO 8601 */
+  eventDate: string
+  seatRow: string
+  seatNumber: number
+  price: number
+  /** ISO 8601 */
+  purchasedAtUtc: string
+}
+
 export interface CreateSeatsCommand {
   /** Tek harf, A-Z */
   startRow: string

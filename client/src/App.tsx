@@ -8,6 +8,7 @@ import { RegisterPage } from '@/features/auth/RegisterPage'
 import { HomePage } from '@/features/events/HomePage'
 import { SeatSelectionPage } from '@/features/booking/SeatSelectionPage'
 import { AdminPage } from '@/features/admin/AdminPage'
+import { MyReservationsPage } from '@/features/reservations/MyReservationsPage'
 
 /**
  * UI guard'ı bir güvenlik önlemi DEĞİLDİR — sadece kullanıcı deneyimi.
@@ -19,6 +20,13 @@ function RequireAdmin({ children }: { children: ReactNode }) {
   return isAdmin ? children : <Navigate to="/login" replace />
 }
 
+// Sadece giriş yapmış kullanıcı; RequireAdmin'in rol-kontrolsüz versiyonu.
+// UI guard'ı = UX; asıl koruma backend'de (/reservations/me [Authorize]).
+function RequireAuth({ children }: { children: ReactNode }) {
+  const user = useAuthStore((state) => state.user)
+  return user ? children : <Navigate to="/login" replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -28,6 +36,14 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/events/:eventId/seats" element={<SeatSelectionPage />} />
+        <Route
+          path="/reservations"
+          element={
+            <RequireAuth>
+              <MyReservationsPage />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/admin"
           element={
