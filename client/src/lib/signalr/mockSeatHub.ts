@@ -74,8 +74,6 @@ class MockSeatHub {
     this.emit({
       eventId,
       seatId: seat.id,
-      row: seat.row,
-      number: seat.number,
       status: nextStatus,
     })
   }

@@ -6,6 +6,7 @@ using TicketReserve.Api.Data;
 using TicketReserve.Api.Data.Entities;
 using TicketReserve.Api.Infrastructure.Auth;
 using TicketReserve.Api.Infrastructure.Locking;
+using TicketReserve.Api.Infrastructure.Realtime;
 
 namespace TicketReserve.Api.Features.Seats.LockSeats
 {
@@ -15,17 +16,20 @@ namespace TicketReserve.Api.Features.Seats.LockSeats
         private readonly ISeatLockService _seatLockService;
         private readonly IOptions<SeatLockSettings> _settings;
         private readonly ICurrentUserService _currentUser;
+        private readonly IPublisher _publisher;
 
         public LockSeatsHandler(
             ApplicationDbContext dbcontext,
             ISeatLockService seatLockService,
             IOptions<SeatLockSettings> locksettings,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            IPublisher publisher)
         {
             _dbcontext = dbcontext;
             _seatLockService = seatLockService;
             _settings = locksettings;
             _currentUser = currentUser;
+            _publisher = publisher;
         }
 
         public async Task<Result<LockSeatsResponse>> Handle(LockSeatsCommand request, CancellationToken cancellationToken)
@@ -49,6 +53,11 @@ namespace TicketReserve.Api.Features.Seats.LockSeats
 
             if (seatlock)
             {
+                foreach (var seat in seats)
+                {
+                    await _publisher.Publish(new SeatStatusChangedNotification(seat.EventId,seat.Id,"Locked"), cancellationToken);
+                    
+                }
                 return Result.Success(new LockSeatsResponse(request.SeatIds, DateTime.UtcNow.AddSeconds(_settings.Value.TtlSeconds)));
             }
 

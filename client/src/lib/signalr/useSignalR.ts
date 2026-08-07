@@ -7,7 +7,7 @@ import { mockSeatHub } from './mockSeatHub'
 
 /**
  * Bir etkinliğin koltuk durum değişikliklerine abone olur.
- * Mock modda simülasyon motoruna, gerçek modda backend'deki KoltukHub'a
+ * Mock modda simülasyon motoruna, gerçek modda backend'deki SeatHub'a
  * bağlanır — çağıran bileşen farkı bilmez, sözleşme aynıdır.
  */
 export function useSignalR(
@@ -29,7 +29,7 @@ export function useSignalR(
     }
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('/hubs/koltuk', {
+      .withUrl('/hubs/seats', {
         accessTokenFactory: () => useAuthStore.getState().accessToken ?? '',
       })
       .withAutomaticReconnect()
@@ -42,7 +42,7 @@ export function useSignalR(
       .start()
       .then(() => {
         // Bağlantı kurulmadan invoke edilemez; grup katılımı start'ın then'inde.
-        // Backend'de karşılığı: KoltukHub.JoinEventGroup(eventId)
+        // Backend'de karşılığı: SeatHub.JoinEventGroup(eventId)
         if (!disposed) return connection.invoke('JoinEventGroup', eventId)
       })
       .catch((error) => console.error('SignalR bağlantısı kurulamadı', error))

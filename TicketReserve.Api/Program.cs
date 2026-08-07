@@ -27,6 +27,7 @@ using TicketReserve.Api.Infrastructure.ExceptionHandling;
 using TicketReserve.Api.Infrastructure.Locking;
 using TicketReserve.Api.Infrastructure.Messaging.Consumers;
 using TicketReserve.Api.Infrastructure.Notifications;
+using TicketReserve.Api.Infrastructure.Realtime;
 using TicketReserve.Api.Infrastructure.Seed;
 
 Log.Logger = new LoggerConfiguration()
@@ -99,6 +100,7 @@ try
     });
 
     builder.Services.AddScoped<ICacheService, RedisCacheService>();
+    builder.Services.AddSignalR();  
 
     // Bildirim servisleri (consumer'lar bunlara devrediyor). Interface → implementasyon.
     builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
@@ -238,6 +240,8 @@ try
     app.MapControllers();
 
     app.MapEndpoints();
+
+    app.MapHub<SeatHub>("/hubs/seats");
 
     await IdentitySeeder.SeedAsync(app);
 

@@ -68,12 +68,15 @@ export interface LockSeatsResult {
   expiresAtUtc: string
 }
 
-/** SignalR KoltukHub'ın yayınladığı event'in sözleşmesi */
+/**
+ * SignalR SeatHub'ın yayınladığı delta'nın sözleşmesi.
+ * Backend ile birebir aynı: sadece "hangi koltuk + yeni durum". Row/Number
+ * taşımıyoruz — onlar değişmeyen snapshot verisi, client zaten koltuk
+ * listesinde tutuyor; delta minimum bilgiyi taşır.
+ */
 export interface SeatStatusChangedEvent {
   eventId: string
   seatId: string
-  row: string
-  number: number
   status: SeatStatus
 }
 

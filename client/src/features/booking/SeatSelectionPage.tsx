@@ -55,11 +55,15 @@ export function SeatSelectionPage() {
   }, [eventId, clearSelection, loadSeats, pushToast])
 
   useSignalR(eventId, (change: SeatStatusChangedEvent) => {
+    // Etiketi delta değil, elimizdeki snapshot veriyor: Row/Number koltuğun
+    // değişmeyen özellikleri, zaten listede duruyor.
+    const changed = seats.find((seat) => seat.id === change.seatId)
+
     setSeats((current) =>
       current.map((seat) => (seat.id === change.seatId ? { ...seat, status: change.status } : seat)),
     )
 
-    const seatLabel = `${change.row}${change.number}`
+    const seatLabel = changed ? `${changed.row}${changed.number}` : 'Bir'
     const isOwnAction = ownActionSeatIds.current.has(change.seatId)
 
     if (!isOwnAction) {

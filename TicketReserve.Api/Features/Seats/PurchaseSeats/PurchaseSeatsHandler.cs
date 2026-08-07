@@ -9,6 +9,7 @@ using TicketReserve.Api.Infrastructure.Auth;
 using TicketReserve.Api.Infrastructure.Correlation;
 using TicketReserve.Api.Infrastructure.Locking;
 using TicketReserve.Api.Infrastructure.Messaging;
+using TicketReserve.Api.Infrastructure.Realtime;
 
 namespace TicketReserve.Api.Features.Seats.PurchaseSeats
 {
@@ -18,13 +19,15 @@ namespace TicketReserve.Api.Features.Seats.PurchaseSeats
         private readonly ISeatLockService _seatLockService;
         private readonly ICurrentUserService _currentUser;
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IPublisher _publisher;
 
-        public PurchaseSeatsHandler(ApplicationDbContext dbcontext, ISeatLockService seatLockService, ICurrentUserService currentUser, IPublishEndpoint publishEndpoint)
+        public PurchaseSeatsHandler(ApplicationDbContext dbcontext, ISeatLockService seatLockService, ICurrentUserService currentUser, IPublishEndpoint publishEndpoint, IPublisher publisher)
         {
             _dbcontext = dbcontext;
             _seatLockService = seatLockService;
             _currentUser = currentUser;
             _publishEndpoint = publishEndpoint;
+            _publisher = publisher;
         }
 
         public async Task<Result> Handle(PurchaseSeatsCommand request, CancellationToken cancellationToken)
@@ -87,6 +90,13 @@ namespace TicketReserve.Api.Features.Seats.PurchaseSeats
             }
 
             await _seatLockService.ReleaseAsync(request.SeatIds, userId);
+
+            foreach (var seat in seats)
+            {
+                await _publisher.Publish(
+                    new SeatStatusChangedNotification(seat.EventId, seat.Id, "Sold"),
+                    cancellationToken);
+            }
 
             return Result.Success();
         }
