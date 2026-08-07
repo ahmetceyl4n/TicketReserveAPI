@@ -3,7 +3,7 @@
 > A real-time event **seat reservation** system built as a deep-dive backend engineering portfolio — concurrency-safe booking, reliable messaging, live seat updates, distributed caching, and full observability.
 
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
-![C#](https://img.shields.io/badge/C%23-13-239120?logo=csharp&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3-FF6600?logo=rabbitmq&logoColor=white)
@@ -55,7 +55,7 @@ flowchart LR
   OUTBOX --> RMQ{{RabbitMQ}}
   RMQ --> CONS[Email / SMS consumers]
 
-  API -. OTLP .-> TEMPO[Grafana Tempo]
+  API -.->|OTLP| TEMPO[Grafana Tempo]
   TEMPO --> GRAFANA[Grafana]
 ```
 
@@ -124,8 +124,11 @@ Secrets are read from user-secrets, not committed to source control:
 ```bash
 cd TicketReserve.Api
 dotnet user-secrets set "Jwt:Key" "<a-long-random-secret>"
+dotnet user-secrets set "SeedAdmin:Email" "admin@ticketreserve.local"
 dotnet user-secrets set "SeedAdmin:Password" "<admin-password>"
 ```
+
+> On first run, an admin account is seeded from these values (skipped if an admin already exists).
 
 ### 3. Apply database migrations
 
